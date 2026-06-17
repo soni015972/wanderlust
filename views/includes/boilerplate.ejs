@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WanderLust – Find your next stay</title>
+    <meta name="description" content="Discover thousands of unique stays handpicked for curious travellers. Find your perfect getaway with WanderLust." />
+    <link rel="stylesheet" href="/css/style.css" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  </head>
+  <body>
+
+    <!-- ========== FLASH TOASTS ========== -->
+    <div class="toast-container" id="toastContainer">
+      <% if (success && success.length > 0) { %>
+        <% success.forEach(msg => { %>
+          <div class="toast success" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            <span><%= msg %></span>
+          </div>
+        <% }) %>
+      <% } %>
+      <% if (error && error.length > 0) { %>
+        <% error.forEach(msg => { %>
+          <div class="toast error" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span><%= msg %></span>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+
+    <!-- ========== NAVBAR ========== -->
+    <nav class="navbar" style="position:sticky;top:0;z-index:200;">
+      <div class="container" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
+        <a class="navbar-brand" href="/listings">Wander<span>Lust</span></a>
+
+        <!-- Desktop nav -->
+        <div class="desktop-nav" style="display:flex;align-items:center;gap:1.5rem;">
+          <a class="nav-link" href="/listings">
+            <i class="bi bi-compass"></i> Explore
+          </a>
+          <a class="nav-link nav-wishlist" href="/wishlist" id="navWishlistLink" title="My Wishlist">
+            <i class="bi bi-heart"></i>
+            <span class="wl-badge" id="navWlBadge">0</span>
+          </a>
+          <a href="/listings/new" class="btn-brand">
+            <i class="bi bi-plus-circle"></i> Add Listing
+          </a>
+        </div>
+
+        <!-- Mobile hamburger -->
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+
+      <!-- Mobile menu -->
+      <div class="mobile-menu" id="mobileMenu">
+        <a class="nav-link" href="/listings"><i class="bi bi-compass"></i> Explore</a>
+        <a class="nav-link" href="/wishlist"><i class="bi bi-heart"></i> Wishlist</a>
+        <a href="/listings/new" class="btn-brand" style="text-align:center;"><i class="bi bi-plus-circle"></i> Add Listing</a>
+      </div>
+    </nav>
+
+    <!-- PAGE CONTENT -->

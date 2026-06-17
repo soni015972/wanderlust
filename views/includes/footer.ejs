@@ -1,0 +1,121 @@
+    <!-- ========== FOOTER ========== -->
+    <footer>
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand-name">Wander<span>Lust</span></div>
+          <p class="footer-desc">Discover unique stays handpicked for curious travellers. Your next adventure starts here.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <a href="/listings">All Listings</a>
+          <a href="/listings?category=Beach">Beach Stays</a>
+          <a href="/listings?category=Mountain">Mountain Retreats</a>
+          <a href="/listings?category=City">City Apartments</a>
+          <a href="/wishlist">My Wishlist</a>
+        </div>
+        <div class="footer-col">
+          <h4>Host</h4>
+          <a href="/listings/new">List Your Property</a>
+          <a href="/listings">Browse All</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 <strong>WanderLust</strong> &nbsp;·&nbsp; Crafted with <i class="bi bi-heart-fill"></i> for travellers worldwide</p>
+      </div>
+    </footer>
+
+    <!-- ========== GLOBAL SCRIPTS ========== -->
+    <script>
+      // ---- Toast auto-dismiss ----
+      (function() {
+        const toasts = document.querySelectorAll('.toast');
+        toasts.forEach(t => {
+          setTimeout(() => {
+            t.classList.add('fade-out');
+            setTimeout(() => t.remove(), 400);
+          }, 4000);
+        });
+      })();
+
+      // ---- Hamburger menu ----
+      const hamburger = document.getElementById('hamburgerBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+      if (hamburger && mobileMenu) {
+        hamburger.addEventListener('click', () => {
+          hamburger.classList.toggle('open');
+          mobileMenu.classList.toggle('open');
+        });
+      }
+
+      // ---- Wishlist (localStorage) ----
+      const WL_KEY = 'wanderlust_wishlist';
+
+      function getWishlist() {
+        try { return JSON.parse(localStorage.getItem(WL_KEY) || '[]'); }
+        catch(e) { return []; }
+      }
+
+      function saveWishlist(list) {
+        localStorage.setItem(WL_KEY, JSON.stringify(list));
+      }
+
+      function toggleWishlist(id, title, img, location, country, price) {
+        let list = getWishlist();
+        const idx = list.findIndex(i => i.id === id);
+        if (idx === -1) {
+          list.push({ id, title, img, location, country, price });
+        } else {
+          list.splice(idx, 1);
+        }
+        saveWishlist(list);
+        updateWishlistUI();
+        return idx === -1; // true = added
+      }
+
+      function updateWishlistUI() {
+        const list = getWishlist();
+        // Update nav badge
+        const badge = document.getElementById('navWlBadge');
+        if (badge) {
+          if (list.length > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = list.length;
+          } else {
+            badge.style.display = 'none';
+          }
+        }
+        // Update all heart buttons on page
+        document.querySelectorAll('.wl-heart').forEach(btn => {
+          const id = btn.dataset.id;
+          const isSaved = list.some(i => i.id === id);
+          if (isSaved) {
+            btn.classList.add('saved');
+            btn.querySelector('i').className = 'bi bi-heart-fill';
+            btn.title = 'Remove from Wishlist';
+          } else {
+            btn.classList.remove('saved');
+            btn.querySelector('i').className = 'bi bi-heart';
+            btn.title = 'Add to Wishlist';
+          }
+        });
+      }
+
+      // Attach heart button listeners
+      document.querySelectorAll('.wl-heart').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          const { id, title, img, location, country, price } = btn.dataset;
+          const added = toggleWishlist(id, title, img, location, country, price);
+          // Animate
+          btn.style.transform = 'scale(1.35)';
+          setTimeout(() => btn.style.transform = '', 250);
+        });
+      });
+
+      // Init
+      updateWishlistUI();
+    </script>
+
+  </body>
+</html>

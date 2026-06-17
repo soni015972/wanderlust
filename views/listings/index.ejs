@@ -1,0 +1,227 @@
+<%- include('../includes/boilerplate.ejs') %>
+
+<!-- ========== HERO ========== -->
+<section class="hero">
+  <div class="hero-content container">
+    <h1>Discover your next<br/><em>adventure</em> anywhere</h1>
+    <p>Thousands of unique stays handpicked for curious travellers worldwide.</p>
+
+    <form class="search-bar" action="/listings" method="GET" id="searchForm">
+      <!-- preserve active category/sort when searching -->
+      <% if (activeCategory && activeCategory !== 'All') { %>
+        <input type="hidden" name="category" value="<%= activeCategory %>" />
+      <% } %>
+      <% if (sort) { %><input type="hidden" name="sort" value="<%= sort %>" /><% } %>
+      <input
+        type="text"
+        name="search"
+        placeholder="Search by city, country, or name…"
+        value="<%= search %>"
+        autocomplete="off"
+        id="heroSearch"
+      />
+      <button type="submit"><i class="bi bi-search"></i> Search</button>
+    </form>
+
+    <!-- Stats bar -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-number" data-target="<%= allListings.length || 500 %>">0</span>
+        <span class="stat-label">Destinations</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" data-target="50">0</span>
+        <span class="stat-label">Countries</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" data-target="10000">0</span>
+        <span class="stat-label">Happy Travellers</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== CATEGORY TABS ========== -->
+<div class="categories-bar">
+  <div class="categories-inner">
+    <% const catIcons = {
+      All: 'bi-globe2',
+      Beach: 'bi-water',
+      Mountain: 'bi-mountain',
+      City: 'bi-buildings',
+      Castle: 'bi-building',
+      Camping: 'bi-tree',
+      Farm: 'bi-flower1',
+      Skiing: 'bi-snow',
+      Arctic: 'bi-thermometer-snow',
+      Tropical: 'bi-brightness-high',
+      Desert: 'bi-sun'
+    }; %>
+
+    <a href="/listings?<%= search ? 'search='+search+'&' : '' %><%= sort ? 'sort='+sort : '' %>"
+       class="cat-btn <%= activeCategory === 'All' ? 'active' : '' %>">
+      <i class="bi <%= catIcons['All'] %>"></i>All
+    </a>
+
+    <% CATEGORIES.forEach(cat => { %>
+      <a href="/listings?category=<%= cat %><%= search ? '&search='+search : '' %><%= sort ? '&sort='+sort : '' %>"
+         class="cat-btn <%= activeCategory === cat ? 'active' : '' %>">
+        <i class="bi <%= catIcons[cat] || 'bi-geo' %>"></i><%= cat %>
+      </a>
+    <% }) %>
+  </div>
+</div>
+
+<!-- ========== MAIN CONTENT ========== -->
+<main class="container mt-section mb-section">
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <form action="/listings" method="GET" id="filterForm" style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
+      <% if (activeCategory && activeCategory !== 'All') { %>
+        <input type="hidden" name="category" value="<%= activeCategory %>" />
+      <% } %>
+      <% if (search) { %>
+        <input type="hidden" name="search" value="<%= search %>" />
+      <% } %>
+
+      <label style="font-size:.82rem;font-weight:600;color:var(--muted);white-space:nowrap;">Sort by:</label>
+      <select name="sort" class="filter-select" onchange="this.form.submit()">
+        <option value="" <%= !sort ? 'selected' : '' %>>Featured</option>
+        <option value="price_asc"  <%= sort==='price_asc'  ? 'selected' : '' %>>Price ↑</option>
+        <option value="price_desc" <%= sort==='price_desc' ? 'selected' : '' %>>Price ↓</option>
+        <option value="newest"     <%= sort==='newest'     ? 'selected' : '' %>>Newest</option>
+      </select>
+
+      <label style="font-size:.82rem;font-weight:600;color:var(--muted);white-space:nowrap;">Price:</label>
+      <input type="number" name="minPrice" class="filter-input" placeholder="Min ₹" value="<%= minPrice %>" min="0" />
+      <span style="font-size:.8rem;color:var(--muted);">–</span>
+      <input type="number" name="maxPrice" class="filter-input" placeholder="Max ₹" value="<%= maxPrice %>" min="0" />
+      <button type="submit" class="btn-filter"><i class="bi bi-funnel"></i> Filter</button>
+
+      <% if (search || activeCategory !== 'All' || sort || minPrice || maxPrice) { %>
+        <a href="/listings" class="btn-clear"><i class="bi bi-x-circle"></i> Clear</a>
+      <% } %>
+    </form>
+
+    <div style="margin-left:auto;font-size:.85rem;color:var(--muted);">
+      <strong style="color:var(--ink);"><%= allListings.length %></strong> listings found
+    </div>
+  </div>
+
+  <!-- Section header -->
+  <p class="section-label">
+    <%= activeCategory !== 'All' ? activeCategory + ' Stays' : 'All Stays' %>
+  </p>
+  <h2 class="section-title" style="margin-bottom:1.75rem;">
+    <%= search ? 'Results for "' + search + '"' : 'Explore listings' %>
+  </h2>
+
+  <!-- Listings grid -->
+  <div class="listings-grid" id="listingsGrid">
+    <% if (allListings.length === 0) { %>
+      <div class="empty-state">
+        <i class="bi bi-search"></i>
+        <h3>No listings found</h3>
+        <p>Try adjusting your search or filters, or explore all destinations.</p>
+        <a href="/listings" class="btn-brand">View all listings</a>
+      </div>
+    <% } %>
+
+    <% for(let listing of allListings) { %>
+      <%
+        // Compute avg rating
+        let avgR = 0;
+        let reviewCount = 0;
+        if (listing.reviews && listing.reviews.length > 0) {
+          reviewCount = listing.reviews.length;
+          const sum = listing.reviews.reduce((a, r) => a + (r.rating || 0), 0);
+          avgR = (sum / reviewCount).toFixed(1);
+        }
+        const imgSrc = listing.image && listing.image.url ? listing.image.url : listing.image;
+      %>
+      <div class="listing-card" style="animation-delay:<%= allListings.indexOf(listing) * 0.04 %>s;">
+        <div class="card-img-wrap">
+          <a href="/listings/<%= listing._id %>" style="display:block;">
+            <img
+              src="<%= imgSrc %>"
+              alt="<%= listing.title %>"
+              loading="lazy"
+              onerror="this.src='https://images.unsplash.com/photo-1625505826533-5c80aca7d157?auto=format&fit=crop&w=800&q=60'"
+            />
+          </a>
+          <!-- Category ribbon -->
+          <% if (listing.category) { %>
+            <span class="cat-ribbon"><%= listing.category %></span>
+          <% } %>
+          <!-- Wishlist heart -->
+          <button
+            class="wl-heart"
+            data-id="<%= listing._id %>"
+            data-title="<%= listing.title %>"
+            data-img="<%= imgSrc %>"
+            data-location="<%= listing.location %>"
+            data-country="<%= listing.country %>"
+            data-price="<%= listing.price %>"
+            title="Add to Wishlist"
+          >
+            <i class="bi bi-heart"></i>
+          </button>
+        </div>
+
+        <a href="/listings/<%= listing._id %>" class="card-body" style="text-decoration:none;color:inherit;">
+          <div class="card-title"><%= listing.title %></div>
+          <div class="card-location">
+            <i class="bi bi-geo-alt-fill" style="color:#E8603A;"></i>
+            <%= listing.location %>, <%= listing.country %>
+          </div>
+          <% if (reviewCount > 0) { %>
+            <div class="card-rating">
+              <span class="stars">
+                <% for(let s=1; s<=5; s++) { %>
+                  <i class="bi bi-star<%= s <= Math.round(avgR) ? '-fill' : (s - 0.5 <= avgR ? '-half' : '') %>"></i>
+                <% } %>
+              </span>
+              <strong><%= avgR %></strong>
+              <span class="count">(<%= reviewCount %> review<%= reviewCount > 1 ? 's' : '' %>)</span>
+            </div>
+          <% } else { %>
+            <div class="card-rating" style="color:#D1D5DB;font-size:.8rem;">
+              <i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i>
+              <span class="count">No reviews yet</span>
+            </div>
+          <% } %>
+          <div class="card-price">
+            <span>&#8377;<%= listing.price ? listing.price.toLocaleString("en-IN") : "N/A" %></span> / night
+          </div>
+        </a>
+      </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('../includes/footer.ejs') %>
+
+<script>
+  // ---- Animated stat counters ----
+  const statEls = document.querySelectorAll('.stat-number');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const target = parseInt(el.dataset.target, 10);
+      const duration = 1400;
+      const step = Math.ceil(target / (duration / 16));
+      let current = 0;
+      const timer = setInterval(() => {
+        current = Math.min(current + step, target);
+        el.textContent = target >= 1000
+          ? (current / 1000).toFixed(current < target ? 1 : 0) + 'k+'
+          : current + (current < target ? '' : '+');
+        if (current >= target) clearInterval(timer);
+      }, 16);
+      observer.unobserve(el);
+    });
+  }, { threshold: .3 });
+  statEls.forEach(el => observer.observe(el));
+</script>

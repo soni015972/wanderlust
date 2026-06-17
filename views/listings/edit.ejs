@@ -1,0 +1,91 @@
+<%- include('../includes/boilerplate.ejs') %>
+
+<div class="form-page">
+  <div class="form-card">
+    <h2>Edit your listing</h2>
+    <p class="subtitle">Update the details for <strong><%= listing.title %></strong>.</p>
+
+    <form method="POST" action="/listings/<%= listing._id %>?_method=PUT" id="editListingForm">
+
+      <div class="form-group">
+        <label>Title</label>
+        <input name="listing[title]" value="<%= listing.title %>" type="text" required />
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea name="listing[description]"><%= listing.description %></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Category</label>
+        <select name="listing[category]">
+          <% CATEGORIES.forEach(cat => { %>
+            <option value="<%= cat %>" <%= listing.category === cat ? 'selected' : '' %>><%= cat %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Image URL</label>
+        <input
+          name="listing[image]"
+          id="imageInput"
+          value="<%= listing.image && listing.image.url ? listing.image.url : listing.image %>"
+          type="url"
+        />
+        <!-- Live preview -->
+        <div class="img-preview-box" id="imgPreview">
+          <img id="imgPreviewTag" src="" alt="Preview" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Price (₹ / night)</label>
+          <input name="listing[price]" value="<%= listing.price %>" type="number" min="0" />
+        </div>
+        <div class="form-group">
+          <label>Country</label>
+          <input name="listing[country]" value="<%= listing.country %>" type="text" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Location / City</label>
+        <input name="listing[location]" value="<%= listing.location %>" type="text" />
+      </div>
+
+      <button class="btn-submit" type="submit">
+        <i class="bi bi-check-circle"></i> Save Changes
+      </button>
+    </form>
+
+    <p class="form-footer">
+      <a href="/listings/<%= listing._id %>">← Cancel and go back</a>
+    </p>
+  </div>
+</div>
+
+<%- include('../includes/footer.ejs') %>
+
+<script>
+  const imgInput = document.getElementById('imageInput');
+  const imgPreview = document.getElementById('imgPreview');
+  const imgPreviewTag = document.getElementById('imgPreviewTag');
+
+  function updatePreview(url) {
+    if (url && url.trim()) {
+      imgPreviewTag.src = url.trim();
+      imgPreview.classList.add('show');
+    } else {
+      imgPreview.classList.remove('show');
+    }
+  }
+
+  // Show existing image on load
+  updatePreview(imgInput.value);
+
+  imgInput.addEventListener('input', () => updatePreview(imgInput.value));
+  imgPreviewTag.addEventListener('error', () => imgPreview.classList.remove('show'));
+</script>

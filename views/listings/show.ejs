@@ -1,0 +1,240 @@
+<%- include('../includes/boilerplate.ejs') %>
+
+<main class="container show-page">
+  <a href="/listings" class="back-link">
+    <i class="bi bi-arrow-left"></i> Back to listings
+  </a>
+
+  <div class="show-layout">
+    <!-- ===== LEFT COLUMN ===== -->
+    <div class="show-main">
+
+      <!-- Image -->
+      <div class="show-img-wrap">
+        <img
+          src="<%= listing.image && listing.image.url ? listing.image.url : listing.image %>"
+          alt="<%= listing.title %>"
+          onerror="this.src='https://images.unsplash.com/photo-1625505826533-5c80aca7d157?auto=format&fit=crop&w=800&q=60'"
+        />
+      </div>
+
+      <!-- Meta badges -->
+      <div class="show-meta">
+        <span class="badge-loc"><i class="bi bi-geo-alt-fill"></i> <%= listing.location %></span>
+        <span class="badge-loc"><i class="bi bi-globe2"></i> <%= listing.country %></span>
+        <% if (listing.category) { %>
+          <span class="badge-cat"><i class="bi bi-tag-fill"></i> <%= listing.category %></span>
+        <% } %>
+      </div>
+
+      <!-- Title & rating -->
+      <h1 class="show-title"><%= listing.title %></h1>
+
+      <% if (listing.reviews && listing.reviews.length > 0) { %>
+        <div class="show-rating">
+          <span class="stars">
+            <% const avg = parseFloat(avgRating);
+               for (let s = 1; s <= 5; s++) { %>
+              <i class="bi bi-star<%= s <= Math.round(avg) ? '-fill' : '' %>"></i>
+            <% } %>
+          </span>
+          <strong><%= avgRating %></strong>
+          <span>· <%= listing.reviews.length %> review<%= listing.reviews.length > 1 ? 's' : '' %></span>
+        </div>
+      <% } else { %>
+        <div class="show-rating" style="color:#D1D5DB;">
+          <span class="stars">
+            <i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i>
+            <i class="bi bi-star"></i><i class="bi bi-star"></i>
+          </span>
+          <span style="color:var(--muted);">No reviews yet — be the first!</span>
+        </div>
+      <% } %>
+
+      <!-- Description -->
+      <p class="show-desc"><%= listing.description %></p>
+
+      <!-- ===== REVIEWS SECTION ===== -->
+      <div class="reviews-section">
+        <h3><i class="bi bi-chat-square-quote" style="color:var(--brand);margin-right:.4rem;"></i>
+          Reviews
+          <% if (listing.reviews && listing.reviews.length > 0) { %>
+            <span style="font-size:1rem;font-weight:400;color:var(--muted);margin-left:.4rem;">(<%= listing.reviews.length %>)</span>
+          <% } %>
+        </h3>
+
+        <!-- Review form -->
+        <div class="review-form-card">
+          <h4>Leave a review</h4>
+          <form action="/listings/<%= listing._id %>/reviews" method="POST" id="reviewForm">
+
+            <!-- Star rating widget -->
+            <div class="star-rating" id="starWidget">
+              <input type="radio" name="review[rating]" id="s5" value="5" required />
+              <label for="s5" title="5 stars"><i class="bi bi-star-fill"></i></label>
+              <input type="radio" name="review[rating]" id="s4" value="4" />
+              <label for="s4" title="4 stars"><i class="bi bi-star-fill"></i></label>
+              <input type="radio" name="review[rating]" id="s3" value="3" />
+              <label for="s3" title="3 stars"><i class="bi bi-star-fill"></i></label>
+              <input type="radio" name="review[rating]" id="s2" value="2" />
+              <label for="s2" title="2 stars"><i class="bi bi-star-fill"></i></label>
+              <input type="radio" name="review[rating]" id="s1" value="1" />
+              <label for="s1" title="1 star"><i class="bi bi-star-fill"></i></label>
+            </div>
+
+            <div class="form-group" style="margin-bottom:.5rem;">
+              <input
+                type="text"
+                name="review[author]"
+                placeholder="Your name (optional)"
+                style="margin-bottom:.6rem;"
+              />
+              <textarea
+                name="review[comment]"
+                placeholder="Share your experience…"
+                required
+              ></textarea>
+            </div>
+
+            <button class="btn-review-submit" type="submit">
+              <i class="bi bi-send"></i> Submit Review
+            </button>
+          </form>
+        </div>
+
+        <!-- Review list -->
+        <% if (listing.reviews && listing.reviews.length > 0) { %>
+          <% listing.reviews.forEach(review => {
+            const initial = (review.author || 'A').charAt(0).toUpperCase();
+            const dateStr = new Date(review.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+          %>
+            <div class="review-card">
+              <div class="review-header">
+                <div class="review-avatar"><%= initial %></div>
+                <div>
+                  <div class="review-author"><%= review.author || 'Anonymous' %></div>
+                  <div class="review-date"><%= dateStr %></div>
+                </div>
+                <div class="review-stars" style="margin-left:auto;">
+                  <% for(let s=1;s<=5;s++){%>
+                    <i class="bi bi-star<%= s <= review.rating ? '-fill' : '' %>"></i>
+                  <%}%>
+                </div>
+              </div>
+              <p class="review-comment"><%= review.comment %></p>
+
+              <!-- Delete review -->
+              <form method="POST" action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" style="margin:0;">
+                <button type="submit" class="review-delete" title="Delete review" onclick="return confirm('Delete this review?')">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </form>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div style="text-align:center;padding:2rem;color:var(--muted);">
+            <i class="bi bi-chat-left" style="font-size:2rem;display:block;margin-bottom:.5rem;opacity:.35;"></i>
+            No reviews yet. Be the first to share your experience!
+          </div>
+        <% } %>
+      </div>
+
+    </div>
+
+    <!-- ===== RIGHT COLUMN – STICKY BOOKING PANEL ===== -->
+    <aside>
+      <div class="booking-panel">
+        <div class="panel-price">
+          &#8377;<%= listing.price ? listing.price.toLocaleString("en-IN") : "N/A" %>
+          <small>/ night</small>
+        </div>
+
+        <% if (listing.reviews && listing.reviews.length > 0) { %>
+          <div style="font-size:.82rem;color:var(--muted);margin-top:.25rem;">
+            <span style="color:#F59E0B;">
+              <% const avg2 = parseFloat(avgRating);
+                 for(let s=1;s<=5;s++){%>
+                <i class="bi bi-star<%= s <= Math.round(avg2) ? '-fill' : '' %>"></i>
+              <%}%>
+            </span>
+            <strong style="color:var(--ink);"> <%= avgRating %></strong>
+            · <%= listing.reviews.length %> review<%= listing.reviews.length > 1 ? 's' : '' %>
+          </div>
+        <% } %>
+
+        <hr class="panel-divider" />
+
+        <!-- Booking CTA -->
+        <button class="btn-book" onclick="document.getElementById('reviewForm').scrollIntoView({behavior:'smooth'})">
+          <i class="bi bi-calendar-check"></i> Reserve Now
+        </button>
+
+        <p style="text-align:center;font-size:.78rem;color:var(--muted);margin-bottom:1rem;">
+          <i class="bi bi-shield-check" style="color:var(--success);"></i>
+          You won't be charged yet
+        </p>
+
+        <hr class="panel-divider" />
+
+        <!-- Edit / Delete actions -->
+        <div class="action-btns">
+          <a href="/listings/<%= listing._id %>/edit" class="btn-outline">
+            <i class="bi bi-pencil-square"></i> Edit
+          </a>
+          <button class="btn-danger-outline" id="openDeleteModal">
+            <i class="bi bi-trash3"></i> Delete
+          </button>
+        </div>
+
+        <div style="margin-top:1.25rem;padding:.85rem;background:var(--surface);border-radius:var(--radius-sm);">
+          <div style="font-size:.8rem;color:var(--muted);display:flex;gap:.35rem;align-items:flex-start;">
+            <i class="bi bi-info-circle" style="flex-shrink:0;margin-top:2px;"></i>
+            <span>Prices shown in INR (₹). Contact host for booking details.</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<!-- ===== DELETE CONFIRMATION MODAL ===== -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-icon">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+    </div>
+    <h3>Delete this listing?</h3>
+    <p>
+      You're about to permanently delete <strong>"<%= listing.title %>"</strong>.
+      This action cannot be undone and all reviews will be removed.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" id="closeDeleteModal">Cancel</button>
+      <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" style="margin:0;">
+        <button type="submit" class="btn-modal-confirm">
+          <i class="bi bi-trash3"></i> Yes, Delete
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../includes/footer.ejs') %>
+
+<script>
+  // Delete modal
+  const modal = document.getElementById('deleteModal');
+  document.getElementById('openDeleteModal').addEventListener('click', () => {
+    modal.classList.add('open');
+  });
+  document.getElementById('closeDeleteModal').addEventListener('click', () => {
+    modal.classList.remove('open');
+  });
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('open');
+  });
+  // Close on Esc
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') modal.classList.remove('open');
+  });
+</script>
