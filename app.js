@@ -1,3 +1,7 @@
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -8,7 +12,7 @@ const methodOverride = require("method-override");
 const session = require("express-session");
 const flash = require("connect-flash");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
+const MONGO_URL = process.env.MONGO_URL || "mongodb://127.0.0.1:27017/wanderlust";
 
 main()
   .then(() => {
@@ -31,7 +35,7 @@ app.use(express.static(path.join(__dirname, "public")));
 // Session & Flash
 app.use(
   session({
-    secret: "wanderlust-secret-key-2024",
+    secret: process.env.SESSION_SECRET || "wanderlust-secret-key-2024",
     resave: false,
     saveUninitialized: true,
     cookie: { maxAge: 1000 * 60 * 60 * 24 },
@@ -259,6 +263,7 @@ app.use((req, res) => {
   });
 });
 
-app.listen(8080, () => {
-  console.log("server is listening to port 8080");
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`server is listening to port ${PORT}`);
 });
